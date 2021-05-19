@@ -75,11 +75,23 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     
     #read events
 	#events for baseline
-    events = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_{2}_fix_cross.txt".format(subj, r, fb), dtype='int')
-    # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
-    if events.shape == (3,):
-        events = events.reshape(1,3) 
+	# download marks of positive feedback
+	
+    events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_positive_fix_cross.txt".format(subj, r), dtype='int')
+        # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
+    if events_pos.shape == (3,):
+        events_pos = events_pos.reshape(1,3)
+        
+    # download marks of negative feedback      
     
+    events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_negative_fix_cross.txt".format(subj, r), dtype='int')
+    # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
+    if events_neg.shape == (3,):
+        events_neg = events_neg.reshape(1,3) 
+    
+    #объединяем негативные и позитивные фидбеки для получения общего бейзлайна по ним, и сортируем массив, чтобы времена меток шли в порядке возрастания    
+    events = np.vstack([events_pos, events_neg])
+    events = np.sort(events, axis = 0) 
     
     #events, which we need
     events_response = np.loadtxt('/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_{2}_fb_{3}.txt'.format(subj, r, cond, fb), dtype='int')
@@ -97,7 +109,8 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 		    
 	   	    
     #epochs for baseline
-    epochs = mne.Epochs(raw_data, events, event_id = None, tmin = -1.0, tmax = 1.0, picks = picks, preload = True)
+    # baseline = None, чтобы не вычитался дефолтный бейзлайн
+    epochs = mne.Epochs(raw_data, events, event_id = None, tmin = -1.0, tmax = 1.0, baseline = None, picks = picks, preload = True)
     epochs.resample(300)
 
     freq_show_baseline = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = freqs//2, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
@@ -108,15 +121,15 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 	    # Для бейзлайна меняем оси местами, на первом месте число каналов
     b_line = np.swapaxes(b_line, 0, 1)
         
-        # выстраиваем в ряд бейзлайны для каждого из 28 эвентов, как будто они происходили один за другим
+        # выстраиваем в ряд бейзлайны для каждого из эвентов, как будто они происходили один за другим
     a, b, c = b_line.shape
     b_line = b_line.reshape(a, b * c)
 	    
 
 	####### ДЛЯ ДАННЫХ ##############
-
+    # baseline = None, чтобы не вычитался дефолтный бейзлайн
     epochs = mne.Epochs(raw_data, events_response, event_id = None, tmin = period_start, 
-		                tmax = period_end, picks = picks, preload = True)
+		                tmax = period_end, baseline = None, picks = picks, preload = True)
 		       
     epochs.resample(300) 
 
@@ -204,7 +217,7 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, scheme)
     mean_combined_planar = combined_planar_in_interval.get_data().mean(axis=-1)
     
     beta_power = []
-beta_power
+
     for i in range(len(mean_combined_planar)):
         a = mean_combined_planar[i][s]
         beta_power.append(a)
