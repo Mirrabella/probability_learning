@@ -136,7 +136,7 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     epochs = mne.Epochs(raw_data, events, event_id = None, tmin = -1.0, tmax = 1.0, baseline = None, picks = picks, preload = True)
     epochs.resample(300)
 
-    freq_show_baseline = mne.time_frequency.tfr_multitaper(epo/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_miochs, freqs = freqs, n_cycles = freqs//2, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
+    freq_show_baseline = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = freqs//2, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
 	    
         #add up all values according to the frequency axis
     b_line = freq_show_baseline.data.sum(axis=-2)
