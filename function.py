@@ -24,13 +24,14 @@ def read_events(filename):
 # Функция для поиска меток фиксационного креста (по ним ищется baseline)
 def fixation_cross_events(data_path_raw, raw_name, data_path_events, name_events, subj, r, fb):
     
-    # для чтения файлов с events используйте либо np.loadtxt либо read_events
+    # для чтения файлов с events используйте либо np.loadtxt либо read_events либо read_events_N
     no_risk = np.loadtxt(op.join(data_path_events, name_events.format(subj, r, fb)), dtype='int')
         
     #no_risk = read_events(op.join(data_path_events, name_events.format(subj, r)))
     
-    # Load raw event with miocorection
+    # Load raw events without miocorrection
     events_raw = read_events(op.join(data_path_raw, raw_name.format(subj, r)))        
+    
     # Load data
 
     #raw_fname = op.join(data_path_raw, raw_name.format(subj, r))
@@ -83,28 +84,31 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 	#events for baseline
 	# download marks of positive feedback
 	
-    #events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_positive_fix_cross.txt".format(subj, r), dtype='int')
+    events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_positive_fix_cross.txt".format(subj, r), dtype='int') 
     
+    '''
     ####################################################
     #проверка скрипта Александры - нериск вместо фикс креста
     events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_norisk_fb_positive.txt".format(subj, r), dtype='int')
     #################################################
-    
-        # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
+    '''
+        # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводим shape к виду (N,3)
     if events_pos.shape == (3,):
         events_pos = events_pos.reshape(1,3)
         
     # download marks of negative feedback      
     
-    #events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_negative_fix_cross.txt".format(subj, r), dtype='int')
+    events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_negative_fix_cross.txt".format(subj, r), dtype='int')
     
+    '''
     ####################################################
     #проверка скрипта Александры - нериск вместо фикс креста
     
     events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_norisk_fb_negative.txt".format(subj, r), dtype='int')
     #################################################
+    '''
     
-    # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
+    # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводим shape к виду (N,3)
     if events_neg.shape == (3,):
         events_neg = events_neg.reshape(1,3) 
     
@@ -113,7 +117,7 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     events = np.sort(events, axis = 0) 
     
     #events, which we need
-    events_response = np.loadtxt('/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_{2}_fb_{3}.txt'.format(subj, r, cond, fb), dtype='int')
+    events_response = np.loadtxt('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/events_by_cond_mio_corrected/{0}_run{1}_{2}_fb_cur_{3}.txt'.format(subj, r, cond, fb), dtype='int')
     # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
     if events_response.shape == (3,):
         events_response = events_response.reshape(1,3)
@@ -132,7 +136,7 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     epochs = mne.Epochs(raw_data, events, event_id = None, tmin = -1.0, tmax = 1.0, baseline = None, picks = picks, preload = True)
     epochs.resample(300)
 
-    freq_show_baseline = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = freqs//2, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
+    freq_show_baseline = mne.time_frequency.tfr_multitaper(epo/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_miochs, freqs = freqs, n_cycles = freqs//2, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
 	    
         #add up all values according to the frequency axis
     b_line = freq_show_baseline.data.sum(axis=-2)
