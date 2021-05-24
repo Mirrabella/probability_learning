@@ -36,12 +36,16 @@ for subj in subjects:
                 try:
                     # загружаем массив эвентов, прошедших миокоррекцию
                     events_mio_corrected = read_events_N('/net/server/data/home/inside/clean_mio_probo/{0}_run{1}_no_mio.txt'.format(subj, r))
+                    events_mio_corrected = events_mio_corrected.tolist()
                     # загружаем массив эвентов, разбитые по условиям
                     events_by_cond = np.loadtxt('/net/server/data/Archive/prob_learn/ksayfulina/events_clean_resp_TT_CF_time_not_corrected/{0}_run{1}_{2}_fb_{3}.txt'.format(subj, r, t, fb), dtype='int')
                     
+                    if events_by_cond.shape == (3,):
+                        events_by_cond = events_by_cond.reshape(1,3)
+                        
+                   
                     
-                    
-                    #events_by_cond = events_by_cond.tolist()
+                    events_by_cond = events_by_cond.tolist()
                     
 
                     events_by_cond_mio_corr = []
@@ -51,8 +55,8 @@ for subj in subjects:
                             
                     events_by_cond_mio_corr = np.array(events_by_cond_mio_corr)
                     
-                    if events_by_cond_mio_corr.shape == (3,):
-                        events_by_cond_mio_corr = events_by_cond_mio_corr.reshape(1,3)
+                    #if events_by_cond_mio_corr.shape == (3,):
+                    #    events_by_cond_mio_corr = events_by_cond_mio_corr.reshape(1,3)
                     
                     n = np.size(events_by_cond_mio_corr)
                     
