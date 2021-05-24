@@ -51,6 +51,9 @@ for subj in subjects:
                             
                     events_by_cond_mio_corr = np.array(events_by_cond_mio_corr)
                     
+                    if events_by_cond_mio_corr.shape == (3,):
+                        events_by_cond_mio_corr = events_by_cond_mio_corr.reshape(1,3)
+                    
                     n = np.size(events_by_cond_mio_corr)
                     
                     if n != 0:
