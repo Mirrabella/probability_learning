@@ -4,7 +4,13 @@ import os.path as op
 import numpy as np
 import pandas as pd
 
-
+# File with events was made by Nikita, you need this function for reading it
+def read_events_N(events_file):    
+    with open(events_file, "r") as f:
+        events_raw = np.fromstring(f.read().replace("[", "").replace("]", "").replace("'", ""), dtype=int, sep=" ")
+        h = events_raw.shape[0]
+        events_raw = events_raw.reshape((h//3, 3))
+        return events_raw
 
 # File with events was made by Lera, you need this function for reading it
 def read_events(filename):
@@ -77,14 +83,27 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 	#events for baseline
 	# download marks of positive feedback
 	
-    events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_positive_fix_cross.txt".format(subj, r), dtype='int')
+    #events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_positive_fix_cross.txt".format(subj, r), dtype='int')
+    
+    ####################################################
+    #проверка скрипта Александры - нериск вместо фикс креста
+    events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_norisk_fb_positive.txt".format(subj, r), dtype='int')
+    #################################################
+    
         # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
     if events_pos.shape == (3,):
         events_pos = events_pos.reshape(1,3)
         
     # download marks of negative feedback      
     
-    events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_negative_fix_cross.txt".format(subj, r), dtype='int')
+    #events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_negative_fix_cross.txt".format(subj, r), dtype='int')
+    
+    ####################################################
+    #проверка скрипта Александры - нериск вместо фикс креста
+    
+    events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_norisk_fb_negative.txt".format(subj, r), dtype='int')
+    #################################################
+    
     # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводи shape к виду (N,3)
     if events_neg.shape == (3,):
         events_neg = events_neg.reshape(1,3) 
@@ -121,7 +140,7 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 	    # Для бейзлайна меняем оси местами, на первом месте число каналов
     b_line = np.swapaxes(b_line, 0, 1)
         
-        # выстраиваем в ряд бейзлайны для каждого из эвентов, как будто они происходили один за другим
+        # выстраиваем в ряд бейзлайныbeta_16_30_epo_comb_planar для каждого из эвентов, как будто они происходили один за другим
     a, b, c = b_line.shape
     b_line = b_line.reshape(a, b * c)
 	    
@@ -162,7 +181,7 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     #getting rid of the frequency axis	
     freq_show.data = freq_show.data.mean(axis=2) 
         
-    epochs_tfr = mne.EpochsArray(freq_show.data, freq_show.info, tmin = -1.750, events = events_response)
+    epochs_tfr = mne.EpochsArray(freq_show.data, freq_show.info, tmin = period_start, events = events_response)
         
     return (epochs_tfr)   
         
@@ -195,7 +214,7 @@ def prev_feedback(events_raw, tials_of_interest, FB):
     
     return(prev_fb)
     
-    
+################################################################################    
     
 def combine_planar_Epoches_TFR(EpochsTFR, tmin):
 	ep_TFR_planar1 = EpochsTFR.copy(); 
