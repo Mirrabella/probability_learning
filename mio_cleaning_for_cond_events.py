@@ -2,6 +2,7 @@ import mne
 import os
 import os.path as op
 import numpy as np
+from function import read_events_N
 
 subjects = []
 for i in range(0,63):
@@ -9,6 +10,13 @@ for i in range(0,63):
         subjects += ['P00' + str(i)]
     else:
         subjects += ['P0' + str(i)]
+        
+# следующие испытуемы удаляются из выборки по причине возраста (>40 лет), либо нерискующие
+subjects.remove('P000')
+subjects.remove('P020')
+subjects.remove('P036')
+subjects.remove('P049')
+subjects.remove('P056')
  
    
 
@@ -24,11 +32,11 @@ for subj in subjects:
     
         for t in trial_type:
             for fb in feedback:
-                file_not_exist = []
-                try:
                 
-                    events_mio_corrected = np.loadtxt('/net/server/data/Archive/prob_learn/asmyasnikova83/MIO/MIO_ALL/{0}_run{1}_events_mio_all.txt'.format(subj, r), dtype='int')
-                    #events_mio_corrected = events_mio_corrected.tolist()
+                try:
+                    # загружаем массив эвентов, прошедших миокоррекцию
+                    events_mio_corrected = read_events_N('/net/server/data/home/inside/clean_mio_probo/{0}_run{1}_no_mio.txt'.format(subj, r))
+                    # загружаем массив эвентов, разбитые по условиям
                     events_by_cond = np.loadtxt('/net/server/data/Archive/prob_learn/ksayfulina/events_clean_resp_TT_CF_time_not_corrected/{0}_run{1}_{2}_fb_{3}.txt'.format(subj, r, t, fb), dtype='int')
                     
                     
@@ -47,7 +55,7 @@ for subj in subjects:
                     
                     if n != 0:
 
-                        np.savetxt("/net/server/data/Archive/prob_learn/vtretyakova/events_by_cond_mio_corrected/{0}_run{1}_{2}_fb_cur_{3}.txt".format(subj, r, t, fb), events_by_cond_mio_corr, fmt="%s")
+                        np.savetxt("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/events_by_cond_mio_corrected/{0}_run{1}_{2}_fb_cur_{3}.txt".format(subj, r, t, fb), events_by_cond_mio_corr, fmt="%s")
                     else:
                         print('Empty array')
                 except OSError:
