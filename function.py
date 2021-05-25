@@ -233,17 +233,29 @@ def combine_planar_Epoches_TFR(EpochsTFR, tmin):
 	return ep_TFR_combined
 	
     
-def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, scheme):
+def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, scheme):
 
-    combined_planar_in_interval = combined_planar.crop(tmin=tmin, tmax=tmax, include_tmax=True)
-
-    mean_combined_planar = combined_planar_in_interval.get_data().mean(axis=-1)
+    list_of_time_intervals = []
+    i = 0
+    while i < (len(time_intervals) - 1):
+        interval = time_intervals[i:i+2]
+        list_of_time_intervals.append(interval)
+        #print(interval)
+        i = i+1
     
-    beta_power = []
+    list_of_beta_power = []    
+    for i in list_of_time_intervals:
+       
+        combined_planar_in_interval = combined_planar.crop(tmin=i[0], tmax=i[1], include_tmax=True)
 
-    for i in range(len(mean_combined_planar)):
-        a = mean_combined_planar[i][s]
-        beta_power.append(a)
+        mean_combined_planar = combined_planar_in_interval.get_data().mean(axis=-1)
+    
+        beta_power = []
+
+        for i in range(len(mean_combined_planar)):
+            a = mean_combined_planar[i][s]
+            beta_power.append(a)
+        list_of_beta_power.append(beta_power)
     
     trial_number = range(len(mean_combined_planar))
     
@@ -275,9 +287,16 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, scheme)
     
     
     df = pd.DataFrame()
-
+    
+    
     df['trial_number'] = trial_number
-    df['beta_power'] = beta_power
+    
+    # beta на интервалах
+    for idx, beta in enumerate(list_of_beta_power):
+        df['beta power %s'%list_of_time_intervals[idx]] = beta
+    
+
+    #df['beta_power'] = beta_power
     df['subject'] = subject
     df['round'] = run
     df['trial_type'] = trial_type
