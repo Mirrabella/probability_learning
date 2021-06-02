@@ -1,3 +1,9 @@
+import mne
+import os
+import os.path as op
+import numpy as np
+
+
 subjects = []
 for i in range(0,63):
     if i < 10:

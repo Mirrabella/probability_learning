@@ -3,6 +3,9 @@ import os
 import os.path as op
 import numpy as np
 import pandas as pd
+from scipy import stats
+import copy
+import statsmodels.stats.multitest as mul
 
 # File with events was made by Nikita, you need this function for reading it
 def read_events_N(events_file):    
@@ -235,6 +238,8 @@ def combine_planar_Epoches_TFR(EpochsTFR, tmin):
     
 def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, scheme):
 
+    
+    time_intervals = np.arange(tmin, tmax, step)
     list_of_time_intervals = []
     i = 0
     while i < (len(time_intervals) - 1):
@@ -245,15 +250,15 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, s
     
     list_of_beta_power = []    
     for i in list_of_time_intervals:
-       
-        combined_planar_in_interval = combined_planar.crop(tmin=i[0], tmax=i[1], include_tmax=True)
+        combined_planar_in_interval = combined_planar.copy()
+        combined_planar_in_interval = combined_planar_in_interval.crop(tmin=i[0], tmax=i[1], include_tmax=True)
 
         mean_combined_planar = combined_planar_in_interval.get_data().mean(axis=-1)
     
         beta_power = []
 
-        for i in range(len(mean_combined_planar)):
-            a = mean_combined_planar[i][s]
+        for j in range(len(mean_combined_planar)):
+            a = mean_combined_planar[j][s]
             beta_power.append(a)
         list_of_beta_power.append(beta_power)
     
@@ -264,7 +269,7 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, s
     trial_type = [t]*len(mean_combined_planar)
     feedback_cur = [fb_cur]*len(mean_combined_planar)
     
-    feedback_prev_data = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/prev_fb_mio_corrected/{0}_run{1}_{2}_fb_cur_{3}_prev_fb.txt".format(subj, r, t, fb_cur), dtype='int')
+    feedback_prev_data = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/prev_fb_mio_corrected/{0}_run{1}_{2}_fb_cur_{3}_prev_fb.txt".format(subj, r, t, fb_cur), dtype='int')
     if feedback_prev_data.shape == (3,):
         feedback_prev_data = feedback_prev_data.reshape(1,3)
     
@@ -306,9 +311,123 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, s
         
     return (df)
     
-   
     
-    
-            
+############################ FUNCTION FOR TTEST AND PLOT TOPOMAPS ############################
+
+def ttest_pair(data_path, subjects, parameter1, parameter2, n): # n - количество временных отчетов
+	contr = np.zeros((len(subjects), 2, 102, n))
+
+	for ind, subj in enumerate(subjects):
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_comb_planar.fif'.format(subj, parameter1)))
+		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_comb_planar.fif'.format(subj, parameter2)))
+		
+
+		contr[ind, 0, :, :] = temp1.data
+		contr[ind, 1, :, :] = temp2.data
+		
+	comp1 = contr[:, 0, :, :]
+	comp2 = contr[:, 1, :, :]
+	t_stat, p_val = stats.ttest_rel(comp2, comp1, axis=0)
+
+	comp1_mean = comp1.mean(axis=0)
+	comp2_mean = comp2.mean(axis=0)
+	
+	return t_stat, p_val, comp1_mean, comp2_mean
+	
+def ttest_vs_zero(data_path, subjects, parameter1, n): # n - количество временных отчетов
+	contr = np.zeros((len(subjects), 1, 102, n))
+
+	for ind, subj in enumerate(subjects):
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_comb_planar.fif'.format(subj, parameter1)))
+		
+		contr[ind, 0, :, :] = temp1.data
+				
+	comp1 = contr[:, 0, :, :]
+	t_stat, p_val = stats.ttest_1samp(comp1, 0, axis=0)
+
+	comp1_mean = comp1.mean(axis=0)
+		
+	return t_stat, p_val, comp1_mean	
+
+
+# space FDR for each time point independently
+def space_fdr(p_val_n):
+    print(p_val_n.shape)
+    temp = copy.deepcopy(p_val_n)
+    for i in range(temp.shape[1]):
+        _, temp[:,i] = mul.fdrcorrection(p_val_n[:,i])
+    return temp
+
+# Full FDR -the correction is made once for the intire data array
+def full_fdr(p_val_n):
+    s = p_val_n.shape
+    print(p_val_n.shape)
+    pval = np.ravel(p_val_n)
+    _, pval_fdr = mul.fdrcorrection(pval)
+    pval_fdr_shape = pval_fdr.reshape(s)
+    return pval_fdr_shape
+
+
+def p_val_binary(p_val_n, treshold):
+	p_val =  copy.deepcopy(p_val_n)
+	for raw in range(p_val.shape[0]):
+		for collumn in range(p_val.shape[1]):
+			if p_val[raw, collumn] < treshold:
+				p_val[raw, collumn] = 1
+			else:
+				p_val[raw, collumn] = 0
+	return p_val
+
+###########################################################################################################
+# temp - donor (see "temp1" in def ttest_pair)
+# mean1, mean2 - Evoked average between subjects (see def ttest_pair), mean2 > mean1
+# average - averaging in mne.plot_topomaps
+
+def plot_deff_topo(p_val, temp, mean1, mean2, time_to_plot, title): 	
+    #Если мы будем использовать донор Evoked из тех, которые усредняются, то время и так будет то, которое необходимо, тогда менять время нет необходимости и присваиваем только новые данные (see temp.data)
+    '''
+	temp.first = -206
+	temp.last = 1395
+
+	temp.times = np.arange(-0.206, 1.395, 0.001)
+    '''
+	
+    binary = p_val_binary(p_val, treshold = 0.05)
+    temp.data = mean2 - mean1
+
+	#temp_shift = temp.shift_time(-0.600, relative=False)
+	
+    fig1 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False, time_unit='s', title = title);
+    fig2 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False, time_unit='s', 
+					title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o', 						markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
+
+
+    return fig1, fig2, temp # temp - "Evoked" for difference mean1 and mean2, which can be save if it is needed   
+
+
+def plot_topo_vs_zero(p_val, temp, mean1, time_to_plot, title): 	
+    #Если мы будем использовать донор Evoked из тех, которые усредняются, то время и так будет то, которое необходимо, тогда менять время нет необходимости и присваиваем только новые данные (see temp.data)
+    '''
+	temp.first = -206
+	temp.last = 1395
+
+	temp.times = np.arange(-0.206, 1.395, 0.001)
+    '''
+	
+    binary = p_val_binary(p_val, treshold = 0.05)
+    temp.data = mean1
+
+	#temp_shift = temp.shift_time(-0.600, relative=False)
+	
+	#fig1 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', average=0.2, show = False,  vmin = -5.5, vmax = 5.5, time_unit='ms', title = title);
+    fig = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False,  time_unit='s', 
+					title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o', 						markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
+
+
+    return fig, temp # temp - "Evoked" , which can be save if it is needed   
+
+          
         
 
