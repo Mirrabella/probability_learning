@@ -7,7 +7,9 @@ from scipy import stats
 import copy
 import statsmodels.stats.multitest as mul
 
-# File with events was made by Nikita, you need this function for reading it
+###############################################################################################
+######## File with events was made by Nikita, you need this function for reading it ###########
+
 def read_events_N(events_file):    
     with open(events_file, "r") as f:
         events_raw = np.fromstring(f.read().replace("[", "").replace("]", "").replace("'", ""), dtype=int, sep=" ")
@@ -15,7 +17,9 @@ def read_events_N(events_file):
         events_raw = events_raw.reshape((h//3, 3))
         return events_raw
 
-# File with events was made by Lera, you need this function for reading it
+###############################################################################################
+######## File with events was made by Lera, you need this function for reading it #############
+
 def read_events(filename):
     with open(filename, "r") as f:
         b = f.read().replace("[","").replace("]", "").replace("'", "")
@@ -24,7 +28,9 @@ def read_events(filename):
         b = list(map(lambda x: list(map(int, x)), b))
         return np.array(b[:])
 
-# Функция для поиска меток фиксационного креста (по ним ищется baseline)
+#####################################################################################
+######## Функция для поиска меток фиксационного креста (по ним ищется baseline)######
+
 def fixation_cross_events(data_path_raw, raw_name, data_path_events, name_events, subj, r, fb):
     
     # для чтения файлов с events используйте либо np.loadtxt либо read_events либо read_events_N
@@ -78,8 +84,9 @@ def fixation_cross_events(data_path_raw, raw_name, data_path_events, name_events
      
     return(event_fixation_cross_norisk)
 
+###########################################################################
+###### Функция для получения эпохированных tfr сингл трайлс ###############
 
-# Функция для получения эпохированных tfr сингл трайлс
 def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline):
     freqs = np.arange(L_freq, H_freq, f_step)
     
@@ -191,8 +198,10 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     epochs_tfr = mne.EpochsArray(freq_show.data, freq_show.info, tmin = period_start, events = events_response)
         
     return (epochs_tfr)   
-        
-# Фукнция для получения предыдущего фидбека
+
+
+##########################################################################################        
+################### Фукнция для получения предыдущего фидбека ############################
 def prev_feedback(events_raw, tials_of_interest, FB):
     
     #Получаем индексы трайлов, которые нас интересуют
@@ -221,8 +230,9 @@ def prev_feedback(events_raw, tials_of_interest, FB):
     
     return(prev_fb)
     
-#######################################################################################   
-########################### Получение комбинированных планаров для эпох  #################################    
+##########################################################################################################   
+########################### Получение комбинированных планаров для эпох  ################################# 
+   
 def combine_planar_Epoches_TFR(EpochsTFR, tmin):
 	ep_TFR_planar1 = EpochsTFR.copy(); 
 	ep_TFR_planar2 = EpochsTFR.copy()
@@ -234,7 +244,8 @@ def combine_planar_Epoches_TFR(EpochsTFR, tmin):
 	ep_TFR_combined = mne.EpochsArray(combine, ep_TFR_planar1.info, tmin = tmin, events = EpochsTFR.events)
 
 	return ep_TFR_combined #возвращает эпохи, которые можно сохранить .fif в файл
-	
+
+#############################################################################################################	
 ##############################  Получение комбинированных планаров для Evoked  ###############################	
 def combine_planar_Evoked(evoked):
 	planar1 = evoked.copy(); 
@@ -326,7 +337,8 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, s
     return (df)
     
 ###############################################################################################    
-############################ FUNCTION FOR TTEST AND PLOT TOPOMAPS ############################
+############################ FUNCTION FOR TTEST ############################
+######################### парный ttest #########################################
 
 def ttest_pair(data_path, subjects, parameter1, parameter2, n): # n - количество временных отчетов
 	contr = np.zeros((len(subjects), 2, 102, n))
@@ -347,7 +359,9 @@ def ttest_pair(data_path, subjects, parameter1, parameter2, n): # n - колич
 	comp2_mean = comp2.mean(axis=0)
 	
 	return t_stat, p_val, comp1_mean, comp2_mean
-	
+
+#############################################################################
+##################### непарный ttest #######################################	
 def ttest_vs_zero(data_path, subjects, parameter1, n): # n - количество временных отчетов
 	contr = np.zeros((len(subjects), 1, 102, n))
 
@@ -366,7 +380,7 @@ def ttest_vs_zero(data_path, subjects, parameter1, n): # n - количеств�
 ##############################################################################################
 #################################### FDR CORRECTION ########################################
 
-# space FDR for each time point independently
+############ space FDR for each sensor independently ######################################
 def space_fdr(p_val_n):
     #print(p_val_n.shape)
     temp = copy.deepcopy(p_val_n)
@@ -374,7 +388,8 @@ def space_fdr(p_val_n):
         _, temp[:,i] = mul.fdrcorrection(p_val_n[:,i])
     return temp
 
-# Full FDR -the correction is made once for the intire data array
+
+################## Full FDR -the correction is made once for the intire data array ############
 def full_fdr(p_val_n):
     s = p_val_n.shape
     #print(p_val_n.shape)
@@ -384,7 +399,7 @@ def full_fdr(p_val_n):
     pval_fdr_shape = pval_fdr.reshape(s)
     return pval_fdr_shape
 
-
+################ make binary dataframe from pvalue (0 or 1) #########################
 def p_val_binary(p_val_n, treshold):
 	p_val =  copy.deepcopy(p_val_n)
 	for raw in range(p_val.shape[0]):
@@ -397,8 +412,11 @@ def p_val_binary(p_val_n, treshold):
 
 
 ###########################################################################################################
+######################################### PLOT TOPOMAPS  ################################################
+
+###################### строим topomaps со статистикой, для разницы между условиями #########################
 # temp - donor (see "temp1" in def ttest_pair)
-# mean1, mean2 - Evoked average between subjects (see def ttest_pair), mean2 > mean1
+# mean1, mean2 - Evoked average between subjects (see def ttest_pair)
 # average - averaging in mne.plot_topomaps
 
 def plot_deff_topo(p_val, temp, mean1, mean2, time_to_plot, title): 	
@@ -423,6 +441,7 @@ def plot_deff_topo(p_val, temp, mean1, mean2, time_to_plot, title):
 
     return fig1, fig2, temp # temp - "Evoked" for difference mean1 and mean2, which can be save if it is needed   
 
+###################### строим topomaps со статистикой, для разницы между условиями #########################
 
 def plot_topo_vs_zero(p_val, temp, mean1, time_to_plot, title): 	
     #Если мы будем использовать донор Evoked из тех, которые усредняются, то время и так будет то, которое необходимо, тогда менять время нет необходимости и присваиваем только новые данные (see temp.data)
