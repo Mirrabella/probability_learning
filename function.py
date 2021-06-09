@@ -221,8 +221,8 @@ def prev_feedback(events_raw, tials_of_interest, FB):
     
     return(prev_fb)
     
-################################################################################    
-    
+#######################################################################################   
+########################### Получение комбинированных планаров для эпох  #################################    
 def combine_planar_Epoches_TFR(EpochsTFR, tmin):
 	ep_TFR_planar1 = EpochsTFR.copy(); 
 	ep_TFR_planar2 = EpochsTFR.copy()
@@ -233,8 +233,22 @@ def combine_planar_Epoches_TFR(EpochsTFR, tmin):
 	combine = ep_TFR_planar1.get_data() + ep_TFR_planar2.get_data()
 	ep_TFR_combined = mne.EpochsArray(combine, ep_TFR_planar1.info, tmin = tmin, events = EpochsTFR.events)
 
-	return ep_TFR_combined
+	return ep_TFR_combined #возвращает эпохи, которые можно сохранить .fif в файл
 	
+##############################  Получение комбинированных планаров для Evoked  ###############################	
+def combine_planar_Evoked(evoked):
+	planar1 = evoked.copy(); 
+	planar2 = evoked.copy()
+	planar1.pick_types(meg='planar1')
+	planar2.pick_types(meg='planar2')
+
+	#grad_RMS = np.power((np.power(evk_planar1.data, 2) + np.power(evk_planar2.data, 2)), 1/2)
+	combined = planar1.data + planar2.data
+	
+	return planar1, planar2, combined #возвращает планары, которые можно сохранить .fif в файл и np.array() из суммы планаров
+
+###########################################################################################################	
+################################ Сборка таблицы для LMEM ###############################
     
 def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, scheme):
 
@@ -311,7 +325,7 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, s
         
     return (df)
     
-    
+###############################################################################################    
 ############################ FUNCTION FOR TTEST AND PLOT TOPOMAPS ############################
 
 def ttest_pair(data_path, subjects, parameter1, parameter2, n): # n - количество временных отчетов
@@ -349,10 +363,12 @@ def ttest_vs_zero(data_path, subjects, parameter1, n): # n - количеств�
 		
 	return t_stat, p_val, comp1_mean	
 
+##############################################################################################
+#################################### FDR CORRECTION ########################################
 
 # space FDR for each time point independently
 def space_fdr(p_val_n):
-    print(p_val_n.shape)
+    #print(p_val_n.shape)
     temp = copy.deepcopy(p_val_n)
     for i in range(temp.shape[1]):
         _, temp[:,i] = mul.fdrcorrection(p_val_n[:,i])
@@ -361,8 +377,9 @@ def space_fdr(p_val_n):
 # Full FDR -the correction is made once for the intire data array
 def full_fdr(p_val_n):
     s = p_val_n.shape
-    print(p_val_n.shape)
-    pval = np.ravel(p_val_n)
+    #print(p_val_n.shape)
+    temp = copy.deepcopy(p_val_n)
+    pval = np.ravel(temp)
     _, pval_fdr = mul.fdrcorrection(pval)
     pval_fdr_shape = pval_fdr.reshape(s)
     return pval_fdr_shape
@@ -377,6 +394,7 @@ def p_val_binary(p_val_n, treshold):
 			else:
 				p_val[raw, collumn] = 0
 	return p_val
+
 
 ###########################################################################################################
 # temp - donor (see "temp1" in def ttest_pair)
@@ -420,9 +438,8 @@ def plot_topo_vs_zero(p_val, temp, mean1, time_to_plot, title):
 
 	#temp_shift = temp.shift_time(-0.600, relative=False)
 	
-	#fig1 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', average=0.2, show = False,  vmin = -5.5, vmax = 5.5, time_unit='ms', title = title);
-    fig = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False,  time_unit='s', 
-					title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o', 						markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+	#fig1 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', average=0.2, show = False,  vmin = -5.0, vmax = 5.0, time_unit='ms', title = title);
+    fig = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False, vmin = -4.5, vmax = 4.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
 
 
 

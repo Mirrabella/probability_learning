@@ -14,7 +14,7 @@ df = pd.read_csv('/home/vtretyakova/Рабочий стол/probability_learning
 
 
 # загружаем комбайн планары, усредненные внутри каждого испытуемого
-data_path = '/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_comb_planar'
+data_path = '/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_2_steps_comb_planar'
 
 subjects = []
 for i in range(0,63):
@@ -83,14 +83,17 @@ pval_in_intevals = []
 for i in range(102):
     
     pval_s = df[df['sensor'] == i]
-    pval_norisk_prerisk = pval_s['norisk_prerisk'].tolist()
-    pval_in_intevals.append(pval_norisk_prerisk)
+    pval_norisk_risk = pval_s['norisk_risk'].tolist()
+    pval_in_intevals.append(pval_norisk_risk)
     
 pval_in_intevals = np.array(pval_in_intevals)
+pval_space_fdr = space_fdr(pval_in_intevals)
+pval_full_fdr =  full_fdr(pval_in_intevals)
 
-
+# считаем разницу бета и добавляем к шаблону (донору)
 temp.data = risk_mean - norisk_mean
 
+# время в которое будет строиться топомапы
 times = np.array([-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4])
 
 # интервалы усредения
@@ -99,6 +102,7 @@ tmax = [-0.7, -0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5, 1.7, 1.9
 
 data_for_plotting = np.empty((102, 0))
 
+#усредняем сигнал в каждом из интервалов усреднения и собираем в единый np.array (102 x n) где 102 - количество комбайнд планаров, а n - количество интервалов усредения
 
 for i in range(17):
     data_in_interval = temp.copy()
@@ -114,13 +118,98 @@ binary = p_val_binary(pval_in_intevals, treshold = 0.05)
 title = 'norisk vs risk, LMEM, noFDR'
 fig = plotting_LMEM.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, units = 'dB', show = False, vmin = -1.5, vmax = 1.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
 
+# space fdr
+binary_space = p_val_binary(pval_space_fdr, treshold = 0.05)
+title = 'norisk vs risk, LMEM,  space FDR'
+fig2 = plotting_LMEM.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, units = 'dB', show = False, vmin = -1.5, vmax = 1.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary_space), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
+# full fdr
+binary_full = p_val_binary(pval_full_fdr, treshold = 0.05)
+title = 'norisk vs risk, LMEM, full FDR'
+fig3 = plotting_LMEM.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, units = 'dB', show = False, vmin = -1.5, vmax = 1.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary_full), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
 
 
 fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/LMEM_norisk_vs_risk_stat_no_fdr.jpeg', dpi = 300)
 
-print(len(pval_in_intevals))
+fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/LMEM_norisk_vs_risk_stat_space_fdr.jpeg', dpi = 300)
 
 
+fig3.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/LMEM_norisk_vs_risk_stat_full_fdr.jpeg', dpi = 300)
+
+
+
+#print(len(pval_in_intevals))
+
+
+########################### norisk vs prerisk ##############################
+_, _, prerisk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'prerisk', parameter2 = 'norisk', n = n)
+
+
+########################### p value #############################
+
+pval_in_intevals = []
+# number of heads in line and the number og intervals into which we divided (see amount od tables with p_value in intervals)
+for i in range(102):
+    
+    pval_s = df[df['sensor'] == i]
+    pval_norisk_prerisk = pval_s['norisk_prerisk'].tolist()
+    pval_in_intevals.append(pval_norisk_prerisk)
+    
+pval_in_intevals = np.array(pval_in_intevals)
+pval_space_fdr = space_fdr(pval_in_intevals)
+pval_full_fdr =  full_fdr(pval_in_intevals)
+
+# считаем разницу бета и добавляем к шаблону (донору)
+temp.data = prerisk_mean - norisk_mean
+
+# время в которое будет строиться топомапы
+times = np.array([-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4])
+
+# интервалы усредения
+tmin = [-0.9, -0.7, -0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3]
+tmax = [-0.7, -0.5, -0.3, -0.1, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5, 1.7, 1.9, 2.1, 2.3, 2.5]
+
+data_for_plotting = np.empty((102, 0))
+
+#усредняем сигнал в каждом из интервалов усреднения и собираем в единый np.array (102 x n) где 102 - количество комбайнд планаров, а n - количество интервалов усредения
+
+for i in range(17):
+    data_in_interval = temp.copy()
+    data_in_interval = data_in_interval.crop(tmin=tmin[i], tmax=tmax[i], include_tmax=True)
+    data_mean = data_in_interval.data.mean(axis = 1)
+    data_mean = data_mean.reshape(102,1)
+    data_for_plotting = np.hstack([data_for_plotting, data_mean])
+
+plotting_LMEM = mne.EvokedArray(data_for_plotting, info = temp.info)
+plotting_LMEM.times = times
+
+binary = p_val_binary(pval_in_intevals, treshold = 0.05)
+title = 'norisk vs prerisk, LMEM, noFDR'
+fig = plotting_LMEM.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, units = 'dB', show = False, vmin = -1.5, vmax = 1.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
+# space fdr
+binary_space = p_val_binary(pval_space_fdr, treshold = 0.05)
+title = 'norisk vs prerisk, LMEM,  space FDR'
+fig2 = plotting_LMEM.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, units = 'dB', show = False, vmin = -1.5, vmax = 1.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary_space), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
+# full fdr
+binary_full = p_val_binary(pval_full_fdr, treshold = 0.05)
+title = 'norisk vs prerisk, LMEM, full FDR'
+fig3 = plotting_LMEM.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, units = 'dB', show = False, vmin = -1.5, vmax = 1.5, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary_full), mask_params = dict(marker='o',		markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+
+
+
+fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/LMEM_norisk_vs_prerisk_stat_no_fdr.jpeg', dpi = 300)
+
+fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/LMEM_norisk_vs_prerisk_stat_space_fdr.jpeg', dpi = 300)
+
+
+fig3.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/LMEM_norisk_vs_prerisk_stat_full_fdr.jpeg', dpi = 300)
+
+
+
+#print(len(pval_in_intevals))
 
 
 

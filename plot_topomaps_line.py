@@ -10,7 +10,7 @@ import copy
 import statsmodels.stats.multitest as mul
 from function import ttest_pair, ttest_vs_zero, space_fdr, full_fdr, p_val_binary, plot_deff_topo, plot_topo_vs_zero
 
-data_path = '/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_comb_planar'
+data_path = '/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_2_steps_comb_planar'
 
 subjects = []
 for i in range(0,63):
@@ -94,7 +94,7 @@ temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked
 
 t_stat, p_val, risk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'risk', parameter2 = 'norisk', n = n)
 
-_, fig2, temp = plot_deff_topo(p_val, temp, risk_mean, norisk_mean, time_to_plot, title = 'norisk vs risk, no FDR')
+_, fig2, temp = plot_deff_topo(p_val, temp, norisk_mean, risk_mean, time_to_plot, title = 'norisk vs risk, no FDR')
 
 fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_risk_stat_no_fdr.jpeg', dpi = 300)
 
@@ -104,7 +104,7 @@ temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked
 
 p_val_space_fdr = space_fdr(p_val)
 
-_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, risk_mean, norisk_mean, time_to_plot, title = 'norisk vs risk, space FDR')
+_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, risk_mean, time_to_plot, title = 'norisk vs risk, space FDR')
 
 fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_risk_stat_space_fdr.jpeg', dpi = 300)
 
@@ -114,7 +114,7 @@ fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned
 
 p_val_full_fdr = full_fdr(p_val)
 
-_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, risk_mean, norisk_mean, time_to_plot, title = 'norisk vs risk, full FDR')
+_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, risk_mean, time_to_plot, title = 'norisk vs risk, full FDR')
 
 fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_risk_stat_full_fdr.jpeg', dpi = 300)
 
@@ -128,7 +128,7 @@ t_stat_norisk, p_val_norisk, norisk_mean = ttest_vs_zero(data_path, subjects, pa
 
 fig, temp = plot_topo_vs_zero(p_val_norisk, temp, norisk_mean, time_to_plot, title = 'norisk vs zero, no FDR')
 
-fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_0_stat_no_fdr.jpeg', dpi = 300)
+fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_0_stat_no_fdr.jpeg', dpi = 300)
 
 ######### 2.2 контраст prerisk vs 0, without correction #########################
 	
@@ -144,7 +144,7 @@ temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked
 n
 t_stat, p_val, prerisk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'prerisk', parameter2 = 'norisk', n = n)
 
-_, fig2, temp = plot_deff_topo(p_val, temp, prerisk_mean, norisk_mean, time_to_plot, title = 'norisk vs prerisk, no FDR')
+_, fig2, temp = plot_deff_topo(p_val, temp, norisk_mean, prerisk_mean, time_to_plot, title = 'norisk vs prerisk, no FDR')
 
 fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_prerisk_stat_no_fdr.jpeg', dpi = 300)
 
@@ -154,7 +154,7 @@ temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked
 
 p_val_space_fdr = space_fdr(p_val)
 
-_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, prerisk_mean, norisk_mean, time_to_plot, title = 'norisk vs prerisk, space FDR')
+_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, prerisk_mean, time_to_plot, title = 'norisk vs prerisk, space FDR')
 
 fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_prerisk_stat_space_fdr.jpeg', dpi = 300)
 
@@ -164,7 +164,7 @@ fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned
 
 p_val_full_fdr = full_fdr(p_val)
 
-_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, prerisk_mean, norisk_mean, time_to_plot, title = 'norisk vs prerisk, full FDR')
+_, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, prerisk_mean, time_to_plot, title = 'norisk vs prerisk, full FDR')
 
 fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_prerisk_stat_full_fdr.jpeg', dpi = 300)
 
