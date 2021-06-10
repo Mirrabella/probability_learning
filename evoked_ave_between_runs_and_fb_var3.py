@@ -41,13 +41,18 @@ for subj in subjects:
                
                 
             except (OSError):
+                
                 print('This file not exist')
 
         ###### Шаг 1. Усреднили все положительные фидбеки внутри испытуемого (между блоками 1 -6) #################
-
-        positive_fb_mean = positive_fb.mean(axis = 0) 
-        positive_fb_mean = positive_fb_mean.reshape(1, 306, 1350) # добавляем ось для фидбека
-
+        if positive_fb.size != 0:
+            positive_fb_mean = positive_fb.mean(axis = 0) 
+            positive_fb_mean = positive_fb_mean.reshape(1, 306, 1350) # добавляем ось для фидбека
+            
+        else:
+            positive_fb_mean = np.empty((0, 306, n))
+            
+            
         ########################## Negative feedback #############################
         negative_fb = np.empty((0, 306, n))
         for r in rounds:
@@ -61,15 +66,22 @@ for subj in subjects:
                 print('This file not exist')
 
         ###### Шаг 1. Усреднили все отрицательные фидбеки внутри испытуемого (между блоками 1 -6) #################
-
-        negative_fb_mean = negative_fb.mean(axis = 0) 
-        negative_fb_mean = negative_fb_mean.reshape(1, 306, 1350) # добавляем ось для фидбека
-
+        if positive_fb.size != 0:
+            negative_fb_mean = negative_fb.mean(axis = 0) 
+            negative_fb_mean = negative_fb_mean.reshape(1, 306, 1350) # добавляем ось для фидбека
+        else:
+            negative_fb_mean = np.empty((0, 306, n))
         ####################### Шаг 2 усреднения. Усредняем данные внутри испытуемого #####################################
-        data_into_subj = np.vstack([negative_fb_mean, positive_fb_mean]).mean(axis = 0)
-
-        temp.data = data_into_subj
-        # сохраняем данные, усредненные внутри испытуемого. Шаг усредения 3, это усреднение между испытуемыми делается при рисовании топомапов
-        temp.save('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_fb_ave_separ/{0}_{1}_evoked_beta_16_30_resp.fif'.format(subj, t))
+        data_into_subj = np.vstack([negative_fb_mean, positive_fb_mean])
+        
+        if data_into_subj.size != 0:
+            temp.data = data_into_subj.mean(axis = 0)
+        
+            # сохраняем данные, усредненные внутри испытуемого. Шаг усредения 3, это усреднение между испытуемыми делается при рисовании топомапов
+            temp.save('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_fb_ave_separ/{0}_{1}_evoked_beta_16_30_resp.fif'.format(subj, t))
+            
+        else:
+            print('Subject has no feedbacks in this condition')
+            pass
 
 
