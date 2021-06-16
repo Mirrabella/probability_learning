@@ -464,6 +464,24 @@ def plot_topo_vs_zero(p_val, temp, mean1, time_to_plot, title):
 
     return fig, temp # temp - "Evoked" , which can be save if it is needed   
 
-          
-        
+########################################################################          
+##############  empty topomaps line (without color) ##################
+
+
+
+# загружаем донора (любой Evoked с комбинированными планарами или одним планаром - чтобы было 102 сеносора). 
+n = 17 # количество говов в ряду
+
+# задаем временные точнки, в которых будем строить головы, затем мы присвоим их для донора (template)
+times_array = np.array([-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4])
+
+def nocolor_topomaps_line (n, temp, times_array ):
+  
+    df = np.zeros((102, 17))
+    temp.data = df
+
+    # задаем временные точки в которые мы будем строить головы
+    temp.times = times_array
+
+    return temp        
 
