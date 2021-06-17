@@ -16,7 +16,7 @@
 
 **create_mem_table.py** - collects data necessary for LMEM in a dataframe and stores it in .csv  
 
-**create_mem_table_for_individual_planars.py** - практически повторяет предыдущий скрипт, но в результае получаем табливцы .csv для LMEM для индивидуальных планаров
+**create_mem_table_for_individual_planars.py** - практически повторяет предыдущий скрипт (**create_mem_table.py**), но в результае получаем табливцы .csv для LMEM для индивидуальных планаров
 
 **grand_average_v1.py** - average the values using mne.grand_average() (average var. 1)   
 
