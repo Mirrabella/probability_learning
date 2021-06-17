@@ -34,5 +34,7 @@
 
 **combined_planar_average_into_subjects.py** - получение комбайн планаров из данных усредненных внутри испытуемого
 
+**combined_planar_or_ind_planar_average_into_subjects.py** - практически повторяет предыдущий скрипт (**combined_planar_average_into_subjects.py**), но расширен тем, что можно получить и сохранить отдельно индивидуальные планары
+
 **plot_timecourses.py** - построение grand average timecourses из данных усреденных внутри испытуемого
 
