@@ -16,6 +16,8 @@
 
 **create_mem_table.py** - collects data necessary for LMEM in a dataframe and stores it in .csv  
 
+**create_mem_table_for_individual_planars.py** - практически повторяет предыдущий скрипт, но в результае получаем табливцы .csv для LMEM для индивидуальных планаров
+
 **grand_average_v1.py** - average the values using mne.grand_average() (average var. 1)   
 
 **evoked_ave_between_runs_and_fb.py** - по итогу скрипта получаем усредненные данные внутри каждого испытуемого. Усреденение происходит средствами MNE: сначала усредняем данные внутри фидбека (и внутри блока (run)), т.е. из эпох получаем evoked. Затем собираем список evoked для каждого испытуемого (должно получаеться от 0 до 12, по количеству блоков 6, каждый блок разделен на 2 фид бека - 12), затем получаем grand_averange из списка evoked, с помощью функции mne.grand_averege()  
