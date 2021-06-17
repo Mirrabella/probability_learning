@@ -340,12 +340,12 @@ def make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, s
 ############################ FUNCTION FOR TTEST ############################
 ######################### парный ttest #########################################
 
-def ttest_pair(data_path, subjects, parameter1, parameter2, n): # n - количество временных отчетов
+def ttest_pair(data_path, subjects, parameter1, parameter2, planar, n): # n - количество временных отчетов
 	contr = np.zeros((len(subjects), 2, 102, n))
 
 	for ind, subj in enumerate(subjects):
-		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_comb_planar.fif'.format(subj, parameter1)))
-		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_comb_planar.fif'.format(subj, parameter2)))
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_{2}.fif'.format(subj, parameter1, planar)))
+		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_{2}.fif'.format(subj, parameter2, planar)))
 		
 
 		contr[ind, 0, :, :] = temp1.data
@@ -362,11 +362,11 @@ def ttest_pair(data_path, subjects, parameter1, parameter2, n): # n - колич
 
 #############################################################################
 ##################### непарный ttest #######################################	
-def ttest_vs_zero(data_path, subjects, parameter1, n): # n - количество временных отчетов
+def ttest_vs_zero(data_path, subjects, parameter1, planar, n): # n - количество временных отчетов
 	contr = np.zeros((len(subjects), 1, 102, n))
 
 	for ind, subj in enumerate(subjects):
-		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_comb_planar.fif'.format(subj, parameter1)))
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_{2}.fif'.format(subj, parameter1, planar)))
 		
 		contr[ind, 0, :, :] = temp1.data
 				
@@ -434,8 +434,7 @@ def plot_deff_topo(p_val, temp, mean1, mean2, time_to_plot, title):
 	#temp_shift = temp.shift_time(-0.600, relative=False)
 	
     fig1 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False, time_unit='s', title = title);
-    fig2 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False, time_unit='s', 
-					title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o', 						markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
+    fig2 = temp.plot_topomap(times = time_to_plot, ch_type='planar1', scalings = 1, average=0.2, units = 'dB', show = False, vmin = -1.2, vmax = 1.2, time_unit='s', title = title, colorbar = True, extrapolate = "local", mask = np.bool_(binary), mask_params = dict(marker='o',			markerfacecolor='white', markeredgecolor='k', linewidth=0, markersize=7, markeredgewidth=2))
 
 
 
