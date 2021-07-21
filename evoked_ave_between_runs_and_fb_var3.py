@@ -66,7 +66,7 @@ for subj in subjects:
                 print('This file not exist')
 
         ###### Шаг 1. Усреднили все отрицательные фидбеки внутри испытуемого (между блоками 1 -6) #################
-        if positive_fb.size != 0:
+        if negative_fb.size != 0:
             negative_fb_mean = negative_fb.mean(axis = 0) 
             negative_fb_mean = negative_fb_mean.reshape(1, 306, 1350) # добавляем ось для фидбека
         else:
