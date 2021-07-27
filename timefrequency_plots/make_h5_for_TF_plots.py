@@ -6,7 +6,7 @@ import mne
 from mne.time_frequency import tfr_morlet, psd_multitaper, psd_welch
 import copy
 import os
-from function import make_h5_files
+from functions import make_h5_files
 
 
 L_freq = 2
