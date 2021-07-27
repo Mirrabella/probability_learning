@@ -30,13 +30,6 @@ pos.shape
 chan_labels_full = to_str_ar(io.loadmat('/home/vera/MNE/Paint_Nikita/channel_labels.mat')['chanlabels'])
 chan_labels = chan_labels_full[204:] # берем только последние 102, первые 204 - это отдельные планары
 
-#Условия сравнения
-session = ["risk", "norisk"]
-stim = ["react"]
-
-label1 = session[0]
-label2 = session[1]
-
 # настройки pdf документа
 # Эта строка необходима дла Windows
 #config = pdfkit.configuration(wkhtmltopdf='D:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe')
@@ -63,10 +56,10 @@ diction = {"stim": "from stimulus ",
 
 # С каким названием сохраниться рисунок. Список имел смысл, когда строили и отдельные планары и комбайны.
 # сейчас в этом нет необходимости, но возможно придется вернуться и отдельным
-planars = ['norisk_vs_risk_comb_planar']
+planars = ['norisk_vs_prerisk_comb_planar']
 
 #папка откуда берем картинки
-pic_folder = '/home/vera/MNE/time_frequency_plots/risk_vs_norisk'
+pic_folder = '/home/vera/MNE/time_frequency_plots/prerisk_vs_norisk'
 
 for ind, planar in enumerate(planars):
     #задаем имя нашей страницы
@@ -75,8 +68,8 @@ for ind, planar in enumerate(planars):
     add_str_html(html_name, '<!DOCTYPE html>')
     add_str_html(html_name, '<html>')
     add_str_html(html_name, '<body>')
-    add_str_html(html_name, '<p style="font-size:32px;"><b> %s, norisk vs risk </b></p>' % (planar))
-    title = 'norisk_vs_risk'
+    add_str_html(html_name, '<p style="font-size:32px;"><b> %s, norisk vs prerisk </b></p>' % (planar))
+    title = 'norisk_vs_prerisk'
     add_str_html(html_name, '<h1 style="font-size:32px;"><b> 40 participants </b></h1>')
        
     for ch_num in range(len(chan_labels)):
