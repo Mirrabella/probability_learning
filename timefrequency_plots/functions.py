@@ -97,8 +97,107 @@ def make_h5_files(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_s
     
     return (freq_show)
 
+###############################################################################################
+######## make combined planar .h5 files for tfr ploting ###########
 
-# функция для смены имени файла с TF plots для отдельного сенсора
+def combined_planar_h5 (tfr):
+    tfr1 = tfr[0]
+    ep_TFR_planar1 = tfr1.copy(); 
+    ep_TFR_planar2 = tfr1.copy()
+    ep_TFR_planar1.pick_types(meg='planar1')
+    ep_TFR_planar2.pick_types(meg='planar2')
+
+    planar1 = ep_TFR_planar1.data
+    planar2 = ep_TFR_planar2.data
+    
+    #grad_RMS = np.power((np.power(evk_planar1.data, 2) + np.power(evk_planar2.data, 2)), 1/2)
+    combined = ep_TFR_planar1.data + ep_TFR_planar2.data
+        
+    return (planar1, planar2, combined)
+    
+###############################################################################################    
+############################ FUNCTION FOR TTEST ############################
+######################### парный ttest #########################################    
+    
+def ttest_pair(data_path, subjects, parameter1, parameter2, planar, n): # n - количество временных отчетов
+	contr = np.zeros((len(subjects), 2, 102, 20, n))
+
+	for ind, subj in enumerate(subjects):
+	    temp1 = mne.time_frequency.read_tfrs(op.join(data_path, '{0}_{1}_average_2_40_resp_{2}.h5'.format(subj, parameter1, planar)))[0]
+	    temp2 = mne.time_frequency.read_tfrs(op.join(data_path, '{0}_{1}_average_2_40_resp_{2}.h5'.format(subj, parameter2, planar)))[0]
+	    
+	    contr[ind, 0, :, :, :] = temp1.data
+	    contr[ind, 1, :, :, :] = temp2.data
+        		        
+		
+	comp1 = contr[:, 0, :, :, :]
+	comp2 = contr[:, 1, :, :, :]
+	t_stat, p_val = stats.ttest_rel(comp2, comp1, axis=0)
+
+	comp1_mean = comp1.mean(axis=0)
+	comp2_mean = comp2.mean(axis=0)
+	
+	return t_stat, p_val, comp1_mean, comp2_mean
+
+#############################################################################
+##################### непарный ttest #######################################	
+def ttest_vs_zero(data_path, subjects, parameter1, planar, n): # n - количество временных отчетов
+	contr = np.zeros((len(subjects), 1, 102, 20, n))
+
+	for ind, subj in enumerate(subjects):
+		temp1 = mne.time_frequency.read_tfrs(op.join(data_path, '{0}_{1}_average_2_40_resp_{2}.h5'.format(subj, parameter1, planar)))[0]
+		
+		contr[ind, 0, :, :, :] = temp1.data
+				
+	comp1 = contr[:, 0, :, :, :]
+	t_stat, p_val = stats.ttest_1samp(comp1, 0, axis=0)
+
+	comp1_mean = comp1.mean(axis=0)
+		
+	return t_stat, p_val, comp1_mean
+
+###################### строим topomaps со статистикой, для разницы между условиями #########################
+# donor creation see make_donor_for_tfr_plot.ipynb
+# mean1, mean2 - tfr average between subjects (see def ttest_pair)
+
+
+def plot_deff_tf(p_val, donor, mean1, mean2, folder_out, title, treshold = 0.05): 	
+    
+	
+    donor.data = mean2 - mean1
+    
+    fig = donor.plot(baseline=None, mode='logratio', title=title, combine = 'mean', mask = p_val.mean(axis = 0 ) < treshold, mask_style = 'contour', show = False);
+    
+    # получаем отдельную картинку для каждого канала
+    for chan in range(len(donor.ch_names)):
+	    b = donor.plot([chan], baseline=None, title=donor.ch_names[chan], mask = p_val[chan] < treshold, mask_style = 'contour', show = False);
+	    name = '/home/vtretyakova/Рабочий стол/time_frequency_plots/{0}/'.format(folder_out) + donor.ch_names[chan] + '.jpeg'
+	    b.savefig(name, dpi=300, format='jpeg', transparent=False, bbox_inches=None, pad_inches=0.1, frameon=None)
+	
+    
+    return fig   
+
+###################### строим topomaps со статистикой, для разницы между условиями #########################
+
+def plot_tf_vs_zero(p_val, donor, mean1, folder_out, title, treshold = 0.05): 	
+
+    donor.data = mean1
+
+    fig = donor.plot(baseline=None, mode='logratio', title=title, combine = 'mean', mask = p_val.mean(axis = 0 ) < treshold, mask_style = 'contour', show = False);
+    
+    # получаем отдельную картинку для каждого канала
+    for chan in range(len(donor.ch_names)):
+	    b = donor.plot([chan], baseline=None, title=donor.ch_names[chan], mask = p_val[chan] < treshold, mask_style = 'contour', show = False);
+	    name = '/home/vtretyakova/Рабочий стол/time_frequency_plots/{0}/'.format(folder_out) + donor.ch_names[chan] + '.jpeg'
+	    b.savefig(name, dpi=300, format='jpeg', transparent=False, bbox_inches=None, pad_inches=0.1, frameon=None)
+
+
+
+    return fig   
+
+
+######################## функция для смены имени файла с TF plots для отдельного сенсора ###################
+
 def name_comb_planar(old_name):
     # разделяем строку по букве G (как в MEG0632.jpeg)
     b = re.split('G+', old_name)
@@ -126,6 +225,7 @@ def name_comb_planar(old_name):
     
     return(new_name)
 
+##########################################################
 #################### Рисование ###########################
 
 # Очищаем pdf документ
