@@ -1,5 +1,6 @@
 
 import mne
+import os
 import os.path as op
 import numpy as np
 import pandas as pd
@@ -15,7 +16,7 @@ for i in range(0,63):
     else:
         subjects += ['P0' + str(i)]
     
-   
+freq_range = 'low_beta_12_20_tb_2'  
 
 rounds = [1, 2, 3, 4, 5, 6]
 
@@ -30,6 +31,18 @@ step = 0.2
 scheme = pd.read_csv('/home/vtretyakova/Рабочий стол/probability_learning/SCHEMES2.csv')
 scheme = scheme.loc[222:]
 
+os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/dataframe_for_LMEM_{0}'.format(freq_range), exist_ok = True)
+
+########################## файл, со входными параметрами ############################################
+
+lines = ["freq_range = {}".format(freq_range), "rounds = {}".format(rounds), "trial_type = {}".format(trial_type), "feedback = {}".format(feedback), "tmin = {}".format(tmin), "tmax = {}".format(tmax), "step = {} усредение сигнала +/- 0,5 step от значения над topomap  ".format(step)]
+
+
+with open("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/dataframe_for_LMEM_{0}/config.txt".format(freq_range), "w") as file:
+    for  line in lines:
+        file.write(line + '\n')
+
+#####################################################################################################
 
 for s in range(102):
     df = pd.DataFrame()
@@ -39,13 +52,13 @@ for s in range(102):
             for t in trial_type:
                 for fb_cur in feedback:
                     try:
-                        combined_planar = mne.read_epochs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_epo_comb_planar/{0}_run{1}_{2}_fb_cur_{3}_beta_16_30-epo_comb_planar.fif'.format(subj, r, t, fb_cur), preload = True)
+                        combined_planar = mne.read_epochs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/{0}_epo_comb_planar/{1}_run{2}_{3}_fb_cur_{4}_{0}-epo_comb_planar.fif'.format(freq_range, subj, r, t, fb_cur), preload = True)
                         
                         df_subj = make_subjects_df(combined_planar, s, subj, r, t, fb_cur, tmin, tmax, step, scheme)
                         df = df.append(df_subj)            
                     except (OSError, FileNotFoundError):
                         print('This file not exist')
-    df.to_csv('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/dataframe_for_LMEM/df_LMEM_{0}.csv'.format(s))
+    df.to_csv('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/dataframe_for_LMEM_{0}/df_LMEM_{1}.csv'.format(freq_range, s))
                     
 	
 	
