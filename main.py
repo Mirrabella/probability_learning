@@ -5,11 +5,11 @@ import numpy as np
 from function import make_beta_signal
 
 
-L_freq = 12
-H_freq = 21
+L_freq = 8
+H_freq = 13
 f_step = 2
 
-time_bandwidth = 2 #(by default = 4)
+time_bandwidth = 4 #(by default = 4)
 # if delta (1 - 4 Hz) 
 #n_cycles = np.array([1, 1, 1, 2]) # уточнить
 
@@ -22,7 +22,9 @@ period_end = 2.750
 
 baseline = (-0.35, -0.05)
 
-freq_range = 'low_beta_12_20_tb_2'
+freq_range = 'alpha_8_12_trf_second_bl'
+
+description = 'Выделяем частоты и при корректировке на бейзлан, каждое значение данных делим на бейзлан, но без логарифмирования. Логарифмирование проводим на последних этапах: перед рисованием, либо перед статистикой'
 
 subjects = []
 for i in range(0,63):
@@ -44,7 +46,7 @@ os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/
 
 ########################## Обязательно делать файл, в котором будет показано какие параметры были заданы, иначе проверить вводные никак нельзя, а это необходимо при возникновении некоторых вопросов ############################################
 
-lines = ["freq_range = {}".format(freq_range), "L_freq = {}".format(L_freq), "H_freq = {}, в питоне последнее число не учитывается, т.е. по факту частота (H_freq -1) ".format(H_freq), "f_step = {}".format(f_step), "time_bandwidth = {}".format(time_bandwidth), "period_start = {}".format(period_start), "period_end = {}".format(period_end), "baseline = {}".format(baseline)]
+lines = ["freq_range = {}".format(freq_range), description, "L_freq = {}".format(L_freq), "H_freq = {}, в питоне последнее число не учитывается, т.е. по факту частота (H_freq -1) ".format(H_freq), "f_step = {}".format(f_step), "time_bandwidth = {}".format(time_bandwidth), "period_start = {}".format(period_start), "period_end = {}".format(period_end), "baseline = {}".format(baseline)]
 
 
 with open("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/{0}_epo/config.txt".format(freq_range), "w") as file:

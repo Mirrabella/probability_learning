@@ -87,7 +87,7 @@ def fixation_cross_events(data_path_raw, raw_name, data_path_events, name_events
 ###########################################################################
 ###### Функция для получения эпохированных tfr сингл трайлс ###############
 
-def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, n_cycles):
+def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, n_cycles, time_bandwidth = 4):
     freqs = np.arange(L_freq, H_freq, f_step)
     
     #read events
@@ -96,12 +96,7 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 	
     events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_positive_fix_cross.txt".format(subj, r), dtype='int') 
     
-    '''
-    ####################################################
-    #проверка скрипта Александры - нериск вместо фикс креста
-    events_pos = np.loadtxt("/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_norisk_fb_positive.txt".format(subj, r), dtype='int')
-    #################################################
-    '''
+
         # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводим shape к виду (N,3)
     if events_pos.shape == (3,):
         events_pos = events_pos.reshape(1,3)
@@ -110,13 +105,6 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     
     events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/fix_cross_mio_corr/{0}_run{1}_norisk_fb_cur_negative_fix_cross.txt".format(subj, r), dtype='int')
     
-    '''
-    ####################################################
-    #проверка скрипта Александры - нериск вместо фикс креста
-    
-    events_neg = np.loadtxt("/net/server/data/Archive/prob_learn/ksayfulina/events_clean_after_mio/{0}_run{1}_norisk_fb_negative.txt".format(subj, r), dtype='int')
-    #################################################
-    '''
     
     # если только одна метка, т.е. одна эпоха, то выдается ошибка, поэтому приводим shape к виду (N,3)
     if events_neg.shape == (3,):
@@ -145,20 +133,60 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
     # baseline = None, чтобы не вычитался дефолтный бейзлайн
     epochs = mne.Epochs(raw_data, events, event_id = None, tmin = -1.0, tmax = 1.0, baseline = None, picks = picks, preload = True)
     epochs.resample(300)
-
-
-    freq_show_baseline = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = n_cycles, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
+    
+    # Способ получения бейзлайна b_line_new_shape, но таким образом нельзя подготовить бейзлайн для второй корректировки (вычитания)
+    '''
+    freq_show_baseline = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = n_cycles, 
+                                                       time_bandwidth = time_bandwidth, use_fft = False, 
+                                                       return_itc = False, average=True).crop(tmin=baseline[0], 
+                                                                                               tmax=baseline[1], 
+                                                                                               include_tmax=True)
+    
+    b_line = freq_show_baseline.data.sum(axis=1) #суммируем частоты
+    
+        
+	# Усредняем бейзлайн по всем точкам, получаем одно число (которое будем вычитать из data для каждого канала)
 	    
-        #add up all values according to the frequency axis
+    b = b_line.mean(axis=-1)
+	    
+    b_line_new_shape = b[:, np.newaxis, np.newaxis]
+    
+          
+    '''
+    
+    ################### Аналогичный результат ########################
+    
+    freq_show_baseline = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = n_cycles, time_bandwidth = time_bandwidth, use_fft = False, return_itc = False, average=False).crop(tmin=baseline[0], tmax=baseline[1], include_tmax=True) #frequency of baseline
+	    
+    #add up all values according to the frequency axis
     b_line = freq_show_baseline.data.sum(axis=-2)
 	    
-	    # Для бейзлайна меняем оси местами, на первом месте число каналов
+	# Для бейзлайна меняем оси местами, на первом месте число каналов
     b_line = np.swapaxes(b_line, 0, 1)
         
-        # выстраиваем в ряд бейзлайныbeta_16_30_epo_comb_planar для каждого из эвентов, как будто они происходили один за другим
+    # выстраиваем в ряд бейзлайныbeta_16_30_epo_comb_planar для каждого из эвентов, как будто они происходили один за другим
     a, b, c = b_line.shape
-    b_line = b_line.reshape(a, b * c)
-	    
+    
+    b_line_ave = b_line.reshape(a, b * c)
+
+    # Усредняем бейзлайн по всем точкам, получаем одно число (которое будем вычитать из data для каждого канала)
+	                        
+    b = b_line_ave.mean(axis=-1)
+	                        
+    b_line_new_shape = b[:, np.newaxis, np.newaxis]  
+    
+    # подготавливаем данные бейзлайн для второй корректировки (вычитания). для этого проходим весь алгоритм, что и для данных. В результате мы получим константу в дБ для кажого из сенсоров которую вычтем из переведенных дБ данных. Это делается потому, что при делении на бейзлайн отдельных эпох,  и при дальнейшем усреденнии данные занижаются относительно  0 из - логарифмирования, по этой причине необходимо вычитать бейзлайн второй раз, чтобы нивелировать это отклонение
+    
+    second_baseline = 10*np.log10(b_line/b_line_new_shape) # 10* - для перевода в дБ
+                    
+    # усредняем между эпохами
+    second_baseline = second_baseline.mean(axis=-2)
+                    
+    # усредняем между временными точками
+    second_baseline = second_baseline.mean(axis=-1)
+                    
+    # Добавляем ось времени и эпох                    
+    second_baseline_new_shape = second_baseline[:, np.newaxis, np.newaxis]
 
 	####### ДЛЯ ДАННЫХ ##############
     # baseline = None, чтобы не вычитался дефолтный бейзлайн
@@ -167,28 +195,39 @@ def make_beta_signal(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, perio
 		       
     epochs.resample(300) 
 
-    freq_show = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = n_cycles, use_fft = False, return_itc = False, average=False)
+    freq_show = mne.time_frequency.tfr_multitaper(epochs, freqs = freqs, n_cycles = n_cycles, time_bandwidth = time_bandwidth, use_fft = False, return_itc = False, average=False)
 
     temp = freq_show.data.sum(axis=2)
 	    
 	####### Для данных так же меняем оси местами
     data = np.swapaxes(temp, 0, 1)
     data = np.swapaxes(data, 1, 2)
-	    
-	# Усредняем бейзлайн по всем точкам, получаем одно число (которое будем вычитать из data для каждого канала)
-	    
-    b = b_line.mean(axis=-1)
-	    
-    b_line_new_shape = b[:, np.newaxis, np.newaxis]
-            
-    #Вычитаем бейзлайн из данных и приводим оси к изначальному порядку
-    data = 10*np.log10(data/b_line_new_shape) # 10* - для перевода в дБ
+	
+	
+    #Корректируем данные на бейзлайн, берем логариф 
+    data_dB = 10*np.log10(data/b_line_new_shape) # 10* - для перевода в дБ
+    
+    ############################## Не используем логарифм, т.к. его использование до усреднения эпох, приводит к занижению полученного значения сигнала #######################
+    
+    #data = data/b_line_new_shape
+    
+    # корректируем данные на бейзлайн второй раз (вычитаем)
+                    
+    data_second_bl = data_dB - second_baseline_new_shape
+    
+    data_second_bl = np.swapaxes(data_second_bl, 1, 2)
+    data_second_bl = np.swapaxes(data_second_bl, 0, 1)
+    
+    
+    
+    
+    
     data = np.swapaxes(data, 1, 2)
     data = np.swapaxes(data, 0, 1)
         
-    freq_show.data = data
+    freq_show.data = data_second_bl[:, :, np.newaxis, :]
         
-    freq_show.data = freq_show.data[:, :, np.newaxis, :]
+    #freq_show.data = freq_show.data[:, :, np.newaxis, :]
         
     #33 is an arbitrary number. We have to set some frequency if we want to save the file
     freq_show.freqs = np.array([33])
@@ -345,8 +384,8 @@ def ttest_pair(data_path, subjects, parameter1, parameter2, planar, n): # n - к
 	contr = np.zeros((len(subjects), 2, 102, n))
 
 	for ind, subj in enumerate(subjects):
-		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_{2}.fif'.format(subj, parameter1, planar)))
-		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_{2}.fif'.format(subj, parameter2, planar)))
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_trf_no_log_division_resp_{2}.fif'.format(subj, parameter1, planar)))
+		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_trf_no_log_division_resp_{2}.fif'.format(subj, parameter2, planar)))
 		
 
 		contr[ind, 0, :, :] = temp1.data
@@ -367,7 +406,7 @@ def ttest_vs_zero(data_path, subjects, parameter1, planar, n): # n - колич�
 	contr = np.zeros((len(subjects), 1, 102, n))
 
 	for ind, subj in enumerate(subjects):
-		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_resp_{2}.fif'.format(subj, parameter1, planar)))
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_beta_16_30_trf_no_log_division_resp_{2}.fif'.format(subj, parameter1, planar)))
 		
 		contr[ind, 0, :, :] = temp1.data
 				
