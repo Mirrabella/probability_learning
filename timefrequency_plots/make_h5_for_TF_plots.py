@@ -26,7 +26,9 @@ period_end = 2.750
 
 baseline = (-0.35, -0.05)
 
+time_bandwidth = 4 #(4 by default)
 
+freq_range = '2_40_step_2_time_bandwidth_by_default_4_early_log'
 
 subjects = []
 for i in range(0,63):
@@ -44,15 +46,28 @@ feedback = ['positive', 'negative']
 
 data_path = '/net/server/data/Archive/prob_learn/vtretyakova/ICA_cleaned'
 os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/tfr_plots', exist_ok = True)
-os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/tfr_plots/h5_2_40_epo', exist_ok = True)
+os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/tfr_plots/{0}_epo'.format(freq_range), exist_ok = True)
+
+description = 'И для данных и для бейзлайн логарифмирование проводим на самых ранных этапах'
+########################## Обязательно делать файл, в котором будет показано какие параметры были заданы, иначе проверить вводные никак нельзя, а это необходимо при возникновении некоторых вопросов ############################################
+
+lines = ["freq_range = {}".format(freq_range), description, "L_freq = {}".format(L_freq), "H_freq = {}, в питоне последнее число не учитывается, т.е. по факту частота (H_freq -1) ".format(H_freq), "f_step = {}".format(f_step), "time_bandwidth = {}".format(time_bandwidth), "period_start = {}".format(period_start), "period_end = {}".format(period_end), "baseline = {}".format(baseline)]
+
+
+with open("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/tfr_plots/{0}_epo/config.txt".format(freq_range), "w") as file:
+    for  line in lines:
+        file.write(line + '\n')
+
+
+##############################################################################################################
 
 for subj in subjects:
     for r in rounds:
         for cond in trial_type:
             for fb in feedback:
                 try:
-                    epochs_tfr_h5 = make_h5_files(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, n_cycles, freqs)
-                    epochs_tfr_h5.save('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/tfr_plots/h5_2_40_epo/{0}_run{1}_{2}_fb_cur_{3}_h5_2_40_epo-epo.h5'.format(subj, r, cond, fb), overwrite=True)
+                    epochs_tfr_h5 = make_h5_files(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, n_cycles, time_bandwidth, freqs)
+                    epochs_tfr_h5.save('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/tfr_plots/{0}_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}-epo.h5'.format(freq_range, subj, r, cond, fb), overwrite=True)
                 except (OSError):
                     print('This file not exist')
 
