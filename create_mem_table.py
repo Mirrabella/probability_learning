@@ -16,7 +16,7 @@ for i in range(0,63):
     else:
         subjects += ['P0' + str(i)]
     
-freq_range = 'low_beta_12_20_tb_2'  
+freq_range = 'alpha_8_12_trf_early_log'  
 
 rounds = [1, 2, 3, 4, 5, 6]
 
@@ -35,7 +35,7 @@ os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/
 
 ########################## файл, со входными параметрами ############################################
 
-lines = ["freq_range = {}".format(freq_range), "rounds = {}".format(rounds), "trial_type = {}".format(trial_type), "feedback = {}".format(feedback), "tmin = {}".format(tmin), "tmax = {}".format(tmax), "step = {} усредение сигнала +/- 0,5 step от значения над topomap  ".format(step)]
+lines = ["freq_range = {}".format(freq_range), "rounds = {}".format(rounds), "trial_type = {}".format(trial_type), "feedback = {}".format(feedback), "tmin = {}".format(tmin), "tmax = {}".format(tmax), "step = {} усредение сигнала +/- 1,0 step от значения над topomap  ".format(step)]
 
 
 with open("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/dataframe_for_LMEM_{0}/config.txt".format(freq_range), "w") as file:

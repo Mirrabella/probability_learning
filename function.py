@@ -502,8 +502,8 @@ def ttest_pair(data_path, subjects, parameter1, parameter2, freq_range, planar, 
 	contr = np.zeros((len(subjects), 2, 102, n))
 
 	for ind, subj in enumerate(subjects):
-		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_{2}_resp_{3}.fif'.format(subj, parameter1, freq_range, planar)))
-		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_{2}_resp_{3}.fif'.format(subj, parameter2, freq_range, planar)))
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_{2}_resp_{3}.fif'.format(subj, parameter1, freq_range, planar)))
+		temp2 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_{2}_resp_{3}.fif'.format(subj, parameter2, freq_range, planar)))
 		
 
 		contr[ind, 0, :, :] = temp1.data
@@ -524,7 +524,7 @@ def ttest_vs_zero(data_path, subjects, parameter1, freq_range, planar, n): # n -
 	contr = np.zeros((len(subjects), 1, 102, n))
 
 	for ind, subj in enumerate(subjects):
-		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_{2}_resp_{3}.fif'.format(subj, parameter1, freq_range, planar)))
+		temp1 = mne.Evoked(op.join(data_path, '{0}_{1}_evoked_{2}_resp_{3}.fif'.format(subj, parameter1, freq_range, planar)))
 		
 		contr[ind, 0, :, :] = temp1.data
 				

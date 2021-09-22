@@ -15,7 +15,7 @@ from function import ttest_pair, ttest_vs_zero, space_fdr, full_fdr, p_val_binar
 # загружаем таблицу с pvalue, полученными с помощью LMEM в R
 #test
 
-freq_range = 'theta_4_8_tb_2'
+freq_range = 'alpha_8_12_trf_early_log'
 
 os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_line/'.format(freq_range), exist_ok = True)
 

@@ -25,7 +25,7 @@ feedback = ['positive', 'negative']
 
 tmin = -1.750
 
-freq_range = 'alpha_8_12_trf_second_bl'
+freq_range = 'alpha_8_12_trf_early_log'
 
 os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/{0}_epo_comb_planar'.format(freq_range), exist_ok = True)
 ########################## файл, со входными параметрами ############################################

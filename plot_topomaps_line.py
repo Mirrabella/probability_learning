@@ -10,7 +10,6 @@ import copy
 import statsmodels.stats.multitest as mul
 from function import ttest_pair, ttest_vs_zero, space_fdr, full_fdr, p_val_binary, plot_deff_topo, plot_topo_vs_zero
 
-data_path = '/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_fb_ave_separ_comb_planar'
 
 subjects = []
 for i in range(0,63):
@@ -66,42 +65,57 @@ print(len(subjects))
 time_to_plot = np.linspace(-0.8, 2.4, num = 17)
 temp = mne.Evoked("/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_ave_into_subjects_comb_planar/P001_norisk_evoked_beta_16_30_resp_comb_planar.fif")
 
+freq_range = 'beta_16_30_trf_no_log_division'
+data_path = '/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/{0}_second_bl_comb_planar'.format(freq_range)
+
+
+#os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest'.format(freq_range), exist_ok = True)
+
 n = temp.data.shape[1] # количество временных отчетов для combaened planars - temp.data.shape = (102 x n), где 102 - количество планаров, а n - число временных отчетов
 
 # задаем планары
 # planars = ['planar1', 'planar2', 'comb_planar']
-planars = ['planar1', 'planar2']
 
+#planars = ['planar1', 'planar2']
+
+planars = ['comb_planar']
+
+'''
 	##### 1. norisk - risk #####
 ######### 1.1 контраст norisk vs 0, without correction #########################
 for p in planars:	
-    t_stat_norisk, p_val_norisk, norisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'norisk', planar = p, n = n)
+
+    # не забываем поменять путь в function.py
+    t_stat_norisk, p_val_norisk, norisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'norisk', freq_range = freq_range, planar = p, n = n)
+    
+ 
     title = ('norisk vs zero %s, no FDR'%p)
     fig, temp = plot_topo_vs_zero(p_val_norisk, temp, norisk_mean, time_to_plot, title)
 
-    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_0_stat_no_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
-    temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+
 
 ######### 1.2 контраст risk vs 0, without correction #########################
 for p in planars:	
-    t_stat_risk, p_val_risk, risk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'risk', planar = p, n = n)
+    t_stat_risk, p_val_risk, risk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'risk', freq_range = freq_range, planar = p, n = n)
 
-    fig, temp = plot_topo_vs_zero(p_val_risk, temp, risk_mean, time_to_plot, title = ('norisk vs zero %s, no FDR'%p))
+    fig, temp = plot_topo_vs_zero(p_val_risk, temp, risk_mean, time_to_plot, title = ('risk vs zero %s, no FDR'%p))
 
-    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/risk_vs_0_stat_no_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/risk_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
-    temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/risk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/risk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
 
 ######### 1.3 контраст norisk vs risk, without correction #########################
 for p in planars:
-    t_stat, p_val, risk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'risk', parameter2 = 'norisk', planar = p, n = n)
+    t_stat, p_val, risk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'risk', parameter2 = 'norisk', freq_range = freq_range, planar = p, n = n)
 
     _, fig2, temp = plot_deff_topo(p_val, temp, norisk_mean, risk_mean, time_to_plot, title = ('norisk vs risk %s, no FDR'%p))
 
-    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_risk_stat_no_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_risk_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
-    temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_risk_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_risk_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
 
     ######### 1.4 контраст norisk vs risk, with space fdr correction #########################
 
@@ -109,7 +123,7 @@ for p in planars:
 
     _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, risk_mean, time_to_plot, title = ('norisk vs risk %s, space FDR'%p))
 
-    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_risk_stat_space_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_risk_stat_space_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
 
 
@@ -119,7 +133,7 @@ for p in planars:
 
     _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, risk_mean, time_to_plot, title = ('norisk vs risk %s, full FDR'%p))
 
-    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_risk/norisk_vs_risk_stat_full_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_risk_stat_full_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
 
 
@@ -127,31 +141,31 @@ for p in planars:
 
 ######### 2.1 контраст norisk vs 0, without correction #########################
 for p in planars:	
-    t_stat_norisk, p_val_norisk, norisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'norisk', planar = p, n = n)
+    t_stat_norisk, p_val_norisk, norisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'norisk', freq_range = freq_range, planar = p, n = n)
 
     fig, temp = plot_topo_vs_zero(p_val_norisk, temp, norisk_mean, time_to_plot, title = ('norisk vs zero %s, no FDR'%p))
 
-    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_0_stat_no_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
 ######### 2.2 контраст prerisk vs 0, without correction #########################
 for p in planars:	
-    t_stat_prerisk, p_val_prerisk, prerisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'prerisk', planar = p, n = n)
+    t_stat_prerisk, p_val_prerisk, prerisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'prerisk', freq_range = freq_range, planar = p, n = n)
 
     fig, temp = plot_topo_vs_zero(p_val_prerisk, temp, prerisk_mean, time_to_plot, title = ('prerisk vs zero %s, no FDR'%p))
 
-    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/prerisk_vs_0_stat_no_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/prerisk_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
-    temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/prerisk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/prerisk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
 
 ######### 2.3 контраст norisk vs prerisk, without correction #########################
 for p in planars:
-    t_stat, p_val, prerisk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'prerisk', parameter2 = 'norisk', planar = p, n = n)
+    t_stat, p_val, prerisk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'prerisk', parameter2 = 'norisk', freq_range = freq_range, planar = p, n = n)
 
     _, fig2, temp = plot_deff_topo(p_val, temp, norisk_mean, prerisk_mean, time_to_plot, title = ('norisk vs prerisk %s, no FDR'%p))
 
-    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_prerisk_stat_no_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_prerisk_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
-    temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_prerisk_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_prerisk_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
 
     ######### 2.4 контраст norisk vs prerisk, with space fdr correction #########################
 
@@ -159,7 +173,7 @@ for p in planars:
 
     _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, prerisk_mean, time_to_plot, title = ('norisk vs prerisk %s, space FDR'%p))
 
-    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_prerisk_stat_space_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_prerisk_stat_space_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
 
 
@@ -169,7 +183,104 @@ for p in planars:
 
     _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, prerisk_mean, time_to_plot, title = ('norisk vs prerisk %s, full FDR'%p))
 
-    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/topomaps_lines/norisk_vs_prerisk/norisk_vs_prerisk_stat_full_fdr_{0}_separ_fb.jpeg'.format(p), dpi = 300)
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/norisk_vs_prerisk_stat_full_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+    
+   
+    
+    ######### 3.1 контраст risk vs 0 fb positive, without correction #########################
+for p in planars:	
+
+    # не забываем поменять путь в function.py
+    t_stat_norisk, p_val_norisk, risk_positive_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'risk_fb_cur_positive', freq_range = freq_range, planar = p, n = n)
+    title = ('risk fb cur positive vs zero %s, no FDR'%p)
+    fig, temp = plot_topo_vs_zero(p_val_norisk, temp, risk_positive_mean, time_to_plot, title)
+
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/risk_fb_cur_positive_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)    
+    
+
+    ######### 3.2 контраст risk vs 0 fb negative, without correction #########################
+    
+    
+for p in planars:	
+
+    # не забываем поменять путь в function.py
+    t_stat_norisk, p_val_norisk, risk_negative_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'risk_fb_cur_negative', freq_range = freq_range, planar = p, n = n)
+    title = ('risk fb cur negative vs zero %s, no FDR'%p)
+    fig, temp = plot_topo_vs_zero(p_val_norisk, temp, risk_negative_mean, time_to_plot, title)
+
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/risk_fb_cur_negative_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)    
+    
+    ######### 3.3 контраст risk positive vs risk negative, without correction #########################
+for p in planars:
+    t_stat, p_val, risk_positive_mean, risk_negative_mean = ttest_pair(data_path, subjects, parameter1 = 'risk_fb_cur_positive', parameter2 = 'risk_fb_cur_negative', freq_range = freq_range, planar = p, n = n)
+
+    _, fig2, temp = plot_deff_topo(p_val, temp, risk_positive_mean, risk_negative_mean, time_to_plot, title = ('risk positive vs risk negative %s, no FDR'%p))
+
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/risk_positive_vs_risk_negative_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_prerisk_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+
+    ######### 3.4 контраст risk positive vs risk negative, with space fdr correction #########################
+
+    p_val_space_fdr = space_fdr(p_val)
+
+    _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, risk_positive_mean, risk_negative_mean, time_to_plot, title = ('risk positive vs risk negative %s, space FDR'%p))
+
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/risk_positive_vs_risk_negative_stat_space_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
 
 
+
+    ######### 3.5 контраст risk positive vs risk negative, with full fdr correction #########################
+
+    p_val_full_fdr = full_fdr(p_val)
+
+    _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, risk_positive_mean, risk_negative_mean, time_to_plot, title = ('risk positive vs risk negative %s, full FDR'%p))
+
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest/risk_positive_vs_risk_negative_stat_full_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+    
+'''    
+######### 4.1 контраст postrisk vs 0, without correction #########################
+for p in planars:	
+    t_stat_postrisk, p_val_postrisk, postrisk_mean = ttest_vs_zero(data_path, subjects, parameter1 = 'postrisk', freq_range = freq_range, planar = p, n = n)
+
+    fig, temp = plot_topo_vs_zero(p_val_postrisk, temp, postrisk_mean, time_to_plot, title = ('postrisk vs zero %s, no FDR'%p))
+
+    fig.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest_second_bl_dpi900/postrisk_vs_0_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/risk_vs_0_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+
+######### 4.2 контраст norisk vs postrisk, without correction #########################
+for p in planars:
+    t_stat, p_val, postrisk_mean, norisk_mean = ttest_pair(data_path, subjects, parameter1 = 'postrisk', parameter2 = 'norisk', freq_range = freq_range, planar = p, n = n)
+
+    _, fig2, temp = plot_deff_topo(p_val, temp, norisk_mean, postrisk_mean, time_to_plot, title = ('norisk vs postrisk %s, no FDR'%p))
+
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest_second_bl_dpi900/norisk_vs_postrisk_stat_no_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+
+    #temp.save('/home/vtretyakova/Рабочий стол/probability_learning/evoked_for_topo/norisk_vs_risk_{0}_separ_fb.fif'.format(p))  # save evoked data to disk
+
+    ######### 4.3 контраст norisk vs risk, with space fdr correction #########################
+
+    p_val_space_fdr = space_fdr(p_val)
+
+    _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, postrisk_mean, time_to_plot, title = ('norisk vs postrisk %s, space FDR'%p))
+
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest_second_bl_dpi900/norisk_vs_postrisk_stat_space_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+
+
+
+    ######### 4.4 контраст norisk vs risk, with full fdr correction #########################
+
+    p_val_full_fdr = full_fdr(p_val)
+
+    _, fig2, temp = plot_deff_topo(p_val_space_fdr, temp, norisk_mean, postrisk_mean, time_to_plot, title = ('norisk vs postrisk %s, full FDR'%p))
+
+    fig2.savefig('/net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/{0}/topomaps_ttest_second_bl_dpi900/norisk_vs_postrisk_stat_full_fdr_{1}.jpeg'.format(freq_range, p), dpi = 900)
+
+    
+    
+    
+        
+    
+    
 
