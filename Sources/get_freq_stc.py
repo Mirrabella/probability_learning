@@ -68,7 +68,7 @@ for subj in subjects:
                 try:
                     
                     stc_fsaverage = make_freq_stc(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, bem, src)
-                    stc_fsaverage.save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc/{1}_run{2}_{3}_fb_cur_{4}_{0}_stc'.format(freq_range, subj, r, cond, fb))
+                    stc_fsaverage.save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage/{1}_run{2}_{3}_fb_cur_{4}_{0}_stc'.format(freq_range, subj, r, cond, fb))
                 except (OSError):
                     print('This file not exist')
 
