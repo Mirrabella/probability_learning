@@ -22,23 +22,29 @@ baseline = (-0.35, -0.05)
 
 freq_range = 'beta_16_30'
 
-description = 'STC for risk negative and positive FB'
+description = 'STC for beta 16 - 30 Hz'
 
 # This code sets an environment variable called SUBJECTS_DIR
 os.environ['SUBJECTS_DIR'] = '/net/server/data/Archive/prob_learn/freesurfer'
 subjects_dir = '/net/server/data/Archive/prob_learn/freesurfer'
 
 # 40 subjects with all choice types
+
 subjects = pd.read_csv('/home/vtretyakova/Рабочий стол/probability_learning/sources/subj_list.csv')['subj_list'].tolist()
 
 subjects.remove('P062') #without MRI
-subjects.remove('P052') # bad segmentation 
+subjects.remove('P052') # bad segmentation, попробовали запустить freesurfer еще раз не помогло
+
+subjects.remove('P032') #ValueError: dimension mismatch - попробовали запустить freesurfer еще раз не помогло. Надо разбираться
+
+
+#subjects = subjects[22:] # from P033
 
 
 rounds = [1, 2, 3, 4, 5, 6]
 
-trial_type = ['risk'] # on this step we'll make stc only for risk positive and negative fb
-#trial_type = ['norisk', 'prerisk', 'risk', 'postrisk']
+#trial_type = ['risk'] # on this step we'll make stc only for risk positive and negative fb
+trial_type = ['norisk', 'prerisk', 'risk', 'postrisk']
 
 feedback = ['positive', 'negative']
 
@@ -61,7 +67,7 @@ with open("/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_f
 
 for subj in subjects:
     bem = mne.read_bem_solution('/net/server/data/Archive/prob_learn/vtretyakova/sources/bem/{0}_bem.h5'.format(subj), verbose=None)
-    src = mne.setup_source_space(subject =subj, add_dist=False )
+    src = mne.setup_source_space(subject =subj, spacing='ico5', add_dist=False ) # by default - spacing='oct6' (4098 sources per hemisphere)
     for r in rounds:
         for cond in trial_type:
             for fb in feedback:
