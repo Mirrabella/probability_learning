@@ -46,8 +46,8 @@ subjects.remove('P045') #RuntimeError: Could not find neighbor for vertex 4395 /
 rounds = [1, 2, 3, 4, 5, 6]
 
 #trial_type = ['risk'] # on this step we'll make stc only for risk positive and negative fb
-trial_type = ['norisk']
-#trial_type = ['norisk', 'prerisk', 'risk', 'postrisk']
+
+trial_type = ['norisk', 'prerisk', 'risk', 'postrisk']
 
 feedback = ['positive', 'negative']
 
