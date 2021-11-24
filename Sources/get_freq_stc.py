@@ -3,7 +3,7 @@ import os
 import os.path as op
 import numpy as np
 import pandas as pd
-from functions import make_freq_stc, make_stc_epochs_from_freq_epochs
+from functions import make_freq_stc, make_stc_epochs_from_freq_epochs, make_stc_epochs_from_freq_epochs_var2
 
 
 L_freq = 16
@@ -22,7 +22,7 @@ baseline = (-0.35, -0.05)
 
 freq_range = 'beta_16_30'
 
-description = 'STC for beta power 16 - 30 Hz, epochs, made from /net/server/data/Archive/prob_learn/vtretyakova/Nikita_mio_cleaned/beta_16_30_trf_early_log/beta_16_30_trf_early_log_epo'
+description = 'STC for beta power 16 - 30 Hz, epochs, make with **source_band_induced_power**, but substituting the epochs into the function one at time, **early log** method'
 
 # This code sets an environment variable called SUBJECTS_DIR
 os.environ['SUBJECTS_DIR'] = '/net/server/data/Archive/prob_learn/freesurfer'
@@ -45,22 +45,21 @@ subjects.remove('P045') #RuntimeError: Could not find neighbor for vertex 4395 /
 
 rounds = [1, 2, 3, 4, 5, 6]
 
-#trial_type = ['risk'] # on this step we'll make stc only for risk positive and negative fb
-
 trial_type = ['norisk', 'prerisk', 'risk', 'postrisk']
+
 
 feedback = ['positive', 'negative']
 
 data_path = '/net/server/data/Archive/prob_learn/vtretyakova/ICA_cleaned'
 os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}'.format(freq_range), exist_ok = True)
-os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo'.format(freq_range), exist_ok = True)
+os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2'.format(freq_range), exist_ok = True)
 
 ########################## Обязательно делать файл, в котором будет показано какие параметры были заданы, иначе проверить вводные никак нельзя, а это необходимо при возникновении некоторых вопросов ############################################
 
 lines = ["freq_range = {}".format(freq_range), description, "L_freq = {}".format(L_freq), "H_freq = {}, в питоне последнее число не учитывается, т.е. по факту частота (H_freq -1) ".format(H_freq), "f_step = {}".format(f_step), "period_start = {}".format(period_start), "period_end = {}".format(period_end), "baseline = {}".format(baseline)]
 
 
-with open("/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo/config.txt".format(freq_range), "w") as file:
+with open("/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2/config.txt".format(freq_range), "w") as file:
     for  line in lines:
         file.write(line + '\n')
 
@@ -74,9 +73,10 @@ for subj in subjects:
     for r in rounds:
         for cond in trial_type:
             for fb in feedback:
+
                 try:
                 
-                    # stc with motphing
+                    # stc with morphing
                     '''
                     stc_fsaverage = make_freq_stc(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, bem, src)
                     stc_fsaverage.save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage/{1}_run{2}_{3}_fb_cur_{4}_{0}_stc'.format(freq_range, subj, r, cond, fb))
@@ -88,15 +88,31 @@ for subj in subjects:
                     '''
                     
                     # stc epochs
-                    
+                    '''
                     stc = make_stc_epochs_from_freq_epochs(subj, r, cond, fb, data_path, baseline, bem, src)
                     print('Количество эпох %s' % len(stc))
                     
-                    os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}'.format(freq_range, subj, r, cond, fb))
+                    os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}'.format(freq_range, subj, r, cond, fb))
                     
                     for s in range(len(stc)):
                         stc[s].save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}/{5}'.format(freq_range, subj, r, cond, fb, s))
+
                     
+                    
+                    '''
+                    
+                    # stc for epochs var2
+                    
+                    stc_epo_list = make_stc_epochs_from_freq_epochs_var2(subj, r, cond, fb, data_path, L_freq, H_freq, f_step, period_start, period_end, baseline, bem, src)
+                    print('Количество эпох %s' % len(stc_epo_list))
+                    
+                    os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}'.format(freq_range, subj, r, cond, fb))
+                    
+                    for s in range(len(stc_epo_list)):
+                        stc_epo_list[s].save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}/{5}'.format(freq_range, subj, r, cond, fb, s))
+                    
+                                
+         
                 except (OSError):
                     print('This file not exist')
 
