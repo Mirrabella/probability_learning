@@ -32,28 +32,34 @@ rounds = [1, 2, 3, 4, 5, 6]
 freq_range = 'beta_16_30'
 
 #создаем папку, куда будут сохраняться полученные файлы
-os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage_epo'.format(freq_range), exist_ok = True)
+os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage_epo_var2'.format(freq_range), exist_ok = True)
+
+# for stc epochs
 
 for subj in subjects:
     for r in rounds:
         for cond in trial_type:
             for fb in feedback:
                 try:
-                    epochs_num = os.listdir('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}'.format(freq_range, subj, r, cond, fb))
+                    epochs_num = os.listdir('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}'.format(freq_range, subj, r, cond, fb))
                     #print(subj)
                     #print(r)
                     #print(fb)
                     print (int(len(epochs_num)/2))
-                    os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}_fsaverage'.format(freq_range, subj, r, cond, fb))
+                    os.makedirs('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}_fsaverage'.format(freq_range, subj, r, cond, fb))
                 
                     for ep in range(int(len(epochs_num)/2)):
                     
-                        stc= mne.read_source_estimate("/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}/{5}".format(freq_range, subj, r, cond, fb, ep))
+                        stc= mne.read_source_estimate("/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}/{5}".format(freq_range, subj, r, cond, fb, ep))
                         morph = mne.compute_source_morph(stc, subject_from=subj, subject_to='fsaverage')
                         stc_fsaverage = morph.apply(stc)
-                        stc_fsaverage.save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage_epo/{1}_run{2}_{3}_fb_cur_{4}_{0}_fsaverage/{5}'.format(freq_range, subj, r, cond, fb, ep))
+                        stc_fsaverage.save('/net/server/data/Archive/prob_learn/vtretyakova/sources/{0}/{0}_stc_fsaverage_epo_var2/{1}_run{2}_{3}_fb_cur_{4}_{0}_fsaverage/{5}'.format(freq_range, subj, r, cond, fb, ep))
                         
                 except (OSError):
                     print('This file not exist')
+
+
+
+                    
 
 
