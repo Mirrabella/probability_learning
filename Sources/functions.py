@@ -211,3 +211,15 @@ def signed_p_val(t, p_val):
         return 1 - p_val
     else:
         return -(1 - p_val)   
+
+#################### Рисование ###########################
+
+# Очищаем pdf документ
+def clear_html(filename):
+    with open(filename, 'w') as f:
+        f.write('')
+
+# функция, чтобы добавить текст (текстовое значение) в html документ
+def add_str_html(filename, text):
+    with open(filename, 'a') as f:
+        f.write(text + '\n')
