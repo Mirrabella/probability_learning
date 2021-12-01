@@ -52,7 +52,7 @@ https://github.com/Mirrabella/MNE_processing/blob/main/Sources/Transform_from_se
 
 5. **Ttest**
 
-* подробнее по шагам Ttest_for_sources.ipynb*
+*подробнее по шагам Ttest_for_sources.ipynb*
 
 5.1. ttest для различных контрастов. Усредение между временными точками делается с помощью resampling (example — resampling = 10, т. е. 10 точек в секунду, т. е. 1 точка это +/- 50 мс)
 
