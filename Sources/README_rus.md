@@ -61,7 +61,8 @@ https://github.com/Mirrabella/MNE_processing/blob/main/Sources/Transform_from_se
 **ttest_sources_ave_time_interval.py**
 
 
-6. **Рисование**
+6. **Рисование**  
+
 6.1. Рисование модели мозга fsaverage для 5.1 (усреднение с помощью resampling)
 
 **plot_source.py**
