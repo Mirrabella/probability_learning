@@ -28,7 +28,7 @@
 
 **make_combined_planar_h5.py**
 
-5. **Построени** отдельные TF plots и Grand Average
+5. **Построениe** отдельные TF plots и Grand Average
 
 **plot_tfr.py**
 
