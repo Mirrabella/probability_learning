@@ -45,7 +45,7 @@ https://mne.tools/stable/generated/mne.minimum_norm.source_band_induced_power.ht
 
 без разделение по фидбекам
 
-**stc_freq_ave_into_subjects_united_feedbacks.py**
+**united_of_fb.py**
 
 
 4.3. Усреднение между испытуемыми
